@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="card">
+    <h2>Preview: {{ file.original_filename }}</h2>
+    <pre class="text-preview">{{ text_content }}</pre>
+    <a href="{% url 'files:download' file.id %}">Download original file</a>
+</section>
+{% endblock %}

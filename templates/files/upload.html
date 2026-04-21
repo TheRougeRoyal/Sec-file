@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="card">
+    <h2>Upload file</h2>
+    <p>Supported types: text and images. Max size: 5 MB.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Encrypt and upload</button>
+    </form>
+</section>
+{% endblock %}

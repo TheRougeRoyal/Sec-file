@@ -1,0 +1,148 @@
+:root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --text: #1f2937;
+    --primary: #0f766e;
+    --border: #d1d5db;
+    --success: #14532d;
+    --error: #991b1b;
+    --info: #1d4ed8;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text);
+    background: linear-gradient(180deg, #f9fafb 0%, #eef2ff 100%);
+}
+
+.topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.topbar h1 {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.topbar nav {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.topbar a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+button {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    padding: 0.65rem;
+}
+
+.message {
+    padding: 0.75rem;
+    border-radius: 6px;
+}
+
+.message.success {
+    background: #dcfce7;
+    color: var(--success);
+}
+
+.message.error {
+    background: #fee2e2;
+    color: var(--error);
+}
+
+.message.info {
+    background: #dbeafe;
+    color: var(--info);
+}
+
+.text-preview {
+    max-height: 420px;
+    overflow: auto;
+    background: #f3f4f6;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+@media (max-width: 700px) {
+    .topbar {
+        align-items: flex-start;
+    }
+
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tr {
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.4rem;
+        background: #fff;
+    }
+
+    td {
+        border: none;
+        padding: 0.35rem;
+    }
+}

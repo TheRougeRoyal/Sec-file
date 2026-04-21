@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "api-designer": {
+      "source": "charon-fan/agent-playbook",
+      "sourceType": "github",
+      "computedHash": "a031e4b22f94702c2e0c2ee3f900cf0ed0afeb4cbca4efab00fdc14c6a61332f"
+    },
+    "cryptography": {
+      "source": "melodic-software/claude-code-plugins",
+      "sourceType": "github",
+      "computedHash": "0b3067f1a8fa54e4aacb6129962a59b7349fe4db4f2004eb436d1693009eec24"
+    },
+    "django-expert": {
+      "source": "vintasoftware/django-ai-plugins",
+      "sourceType": "github",
+      "computedHash": "a6b8c224017570496d688a526fcbea74025a01cc90d9afb0977bfcc1f76af306"
+    },
+    "python-expert": {
+      "source": "shubhamsaboo/awesome-llm-apps",
+      "sourceType": "github",
+      "computedHash": "502979957aa63e93b0366d357a241695181c93e739e1bb75b6410505bcc91ba9"
+    },
+    "python-project-structure": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "2f4f560964af8ecad4d54666c044baa54671d0abd1136c848b539befe24db170"
+    },
+    "sql-pro": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "b745f81c2fb823c1b263ef2ca95e036615707cb840d2109925d47c1f4258fedc"
+    }
+  }
+}
