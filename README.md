@@ -75,3 +75,72 @@ All uploaded files are encrypted with ECC-based key exchange and per-file encryp
 ```bash
 python manage.py test
 ```
+
+## Deploy to Vercel
+
+### Prerequisites
+
+1. Install Vercel CLI:
+   ```bash
+   npm install -g vercel
+   ```
+
+2. Login to Vercel:
+   ```bash
+   vercel login
+   ```
+
+### Deployment Steps
+
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Collect static files:**
+   ```bash
+   python manage.py collectstatic --noinput
+   ```
+
+3. **Deploy to Vercel:**
+   ```bash
+   vercel
+   ```
+
+### Environment Variables
+
+Set these in your Vercel project settings (vercel.json or Vercel dashboard):
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SECRET_KEY` | Django secret key for production | (auto-generated) |
+| `DEBUG` | Enable debug mode | `False` |
+| `ALLOWED_HOSTS` | Comma-separated allowed hosts | `.vercel.app` |
+
+### Important Notes
+
+- **Database**: This deployment uses SQLite stored in `/tmp/` which is ephemeral. Data will be lost between serverless invocations.
+- **For production**: Consider migrating to PostgreSQL with a persistent database service like:
+  - Vercel Postgres
+  - Neon
+  - Supabase
+  - AWS RDS
+
+- **Media Files**: Uploaded files are stored in `/tmp/media` and are also ephemeral. For persistent storage, use:
+  - AWS S3
+  - Vercel Blob Storage
+  - Cloudinary
+
+### Local Preview
+
+To test the Vercel deployment locally:
+
+```bash
+vercel dev
+```
+
+### Troubleshooting
+
+1. **502 Bad Gateway**: Check that `DJANGO_SETTINGS_MODULE` is set correctly
+2. **Static files not loading**: Run `python manage.py collectstatic --noinput` before deploying
+3. **Database errors**: Ensure migrations are run during build
