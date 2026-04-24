@@ -6,4 +6,5 @@ dependencies = [
     "cryptography>=44.0.0",
     "Django>=5.1.0",
     "pycryptodome>=3.21.0",
+    "whitenoise>=6.7.0",
 ]
