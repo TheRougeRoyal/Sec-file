@@ -1,39 +1,84 @@
-# Python cache and compiled files
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyd
+*.pyo
+*.so
+.Python
 
 # Virtual environments
 .venv/
 venv/
 env/
+ENV/
+.envrc
+.direnv/
 
-# Django and local runtime data
+# Django local runtime data
 db.sqlite3
+db.sqlite3-*
+*.sqlite3
 media/
 staticfiles/
 
-# Environment files
+# Secrets and environment files
 .env
 .env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
 
 # Packaging/build
 build/
 dist/
 *.egg-info/
 .eggs/
+pip-wheel-metadata/
+wheelhouse/
 
-# Tooling and tests
+# Test, coverage, and type-checker caches
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.tox/
+.nox/
 .mypy_cache/
+.pyre/
+.ruff_cache/
+.hypothesis/
+
+# Django and Python tooling
+celerybeat-schedule
+*.mo
+*.pot
+
+# Vercel and deployment-local state
+.vercel/
+.vercel
+
+# Generated project analysis output
+graphify-out/
+
+# Local agent/editor state
+.codex
+.claude/
+.agents/tmp/
 
 # Editor and OS files
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.code-workspace
 
 # Logs
 *.log
-.vercel
+logs/

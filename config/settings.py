@@ -13,11 +13,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Vercel serverless deployment detection
-VERCEL = os.environ.get('VERCEL', '0') == '1'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -29,14 +28,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-#h6gh8fpafq-3(!ar%a=a
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 # Allowed hosts - add Vercel preview URLs and production domain
-ALLOWED_HOSTS = [
+# Trust all hosts in debug mode (local dev + Django test client)
+# to avoid 400 Bad Request from host header mismatches.
+_production_hosts = [
     "127.0.0.1",
     "localhost",
-    ".vercel.app",  # Allows all Vercel subdomains
+    ".vercel.app",
 ]
 
-# Parse additional allowed hosts from environment variable
-if os.environ.get('ALLOWED_HOSTS'):
+ALLOWED_HOSTS = ["*"] if DEBUG else _production_hosts
+
+# Parse additional allowed hosts from environment variable (production only)
+if not DEBUG and os.environ.get('ALLOWED_HOSTS'):
     ALLOWED_HOSTS.extend(os.environ.get('ALLOWED_HOSTS').split(','))
 
 
@@ -87,22 +90,21 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+#
+# Required environment variables for production:
+#   DATABASE_URL - e.g. postgres://user:pass@host:5432/dbname
+#                 If not set, defaults to SQLite at BASE_DIR/db.sqlite3 (local dev only).
 
-# On Vercel, use in-memory or tmp database for serverless
-# For production, consider switching to PostgreSQL via environment variable
-if VERCEL:
-    # Serverless environment - use tmp directory for SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/db.sqlite3',
-            # SQLite settings for serverless
-            'OPTIONS': {
-                'timeout': 30,
-            }
-        }
-    }
+if os.environ.get('DATABASE_URL'):
+    import dj_database_url
+    DATABASES = {'default': dj_database_url.parse(os.environ['DATABASE_URL'])}
 else:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "DATABASE_URL environment variable is required in production. "
+            "Use a managed PostgreSQL database (e.g. Supabase, Railway, Render). "
+            "Example: postgres://user:pass@host:5432/dbname"
+        )
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -149,15 +151,52 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# WhiteNoise configuration for compressed static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
-# For Vercel serverless, store media in tmp directory
-if VERCEL:
-    MEDIA_ROOT = Path('/tmp/media')
+# Media file storage.
+#
+# Production (AWS_S3_BUCKET_NAME set): files are stored in S3 using django-storages.
+#   Required env vars: AWS_S3_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+#   Optional: AWS_S3_REGION_NAME, AWS_S3_ENDPOINT_URL, AWS_S3_CUSTOM_DOMAIN.
+#
+# Local dev (no AWS vars): files are stored on disk at BASE_DIR/media.
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
+if os.environ.get('AWS_S3_BUCKET_NAME'):
+    STORAGES['default'] = {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+    }
+    AWS_S3_BUCKET_NAME = os.environ['AWS_S3_BUCKET_NAME']
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_REGION_NAME = os.environ.get(
+        'AWS_S3_REGION_NAME',
+        os.environ.get('AWS_S3_REGION_ENDPOINT', 'us-east-1'),
+    )
+    AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    MEDIA_URL = os.environ.get(
+        'AWS_S3_CUSTOM_DOMAIN',
+        f'{AWS_S3_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com',
+    )
+    MEDIA_URL = f'https://{MEDIA_URL.rstrip("/")}/media/'
+elif not DEBUG:
+    raise ImproperlyConfigured(
+        "AWS_S3_BUCKET_NAME environment variable is required in production. "
+        "Use S3-compatible storage (e.g. AWS S3, Cloudflare R2, Backblaze B2). "
+        "Example: my-app-media-bucket"
+    )
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'files:dashboard'
@@ -165,7 +204,22 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
-SECURE_BROWSER_XSS_FILTER = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = os.environ.get(
+    'SECURE_SSL_REDIRECT',
+    str(not DEBUG),
+).lower() in ('true', '1', 'yes')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0' if DEBUG else '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get(
+    'SECURE_HSTS_INCLUDE_SUBDOMAINS',
+    'False',
+).lower() in ('true', '1', 'yes')
+SECURE_HSTS_PRELOAD = os.environ.get(
+    'SECURE_HSTS_PRELOAD',
+    'False',
+).lower() in ('true', '1', 'yes')
 X_FRAME_OPTIONS = 'DENY'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

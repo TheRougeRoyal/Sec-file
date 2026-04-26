@@ -1,5 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
+  "buildCommand": "bash vercel_build.sh",
+  "installCommand": "pip install -r requirements.txt",
   "builds": [
     {
       "src": "api/wsgi.py",
@@ -8,10 +11,6 @@
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/api/wsgi.py"
     }
@@ -19,13 +18,16 @@
   "build": {
     "env": {
       "DJANGO_SETTINGS_MODULE": "config.settings",
-      "PYTHONPATH": ".",
-      "VERCEL": "1"
+      "PYTHONPATH": "."
+    }
+  },
+  "functions": {
+    "api/**/*.py": {
+      "excludeFiles": "{.agents/**,.claude/**,graphify-out/**,tests/**,src/**,**/__pycache__/**,**/*.pyc,db.sqlite3,media/**,*.code-workspace,skills-lock.json}"
     }
   },
   "env": {
     "DJANGO_SETTINGS_MODULE": "config.settings",
-    "PYTHONPATH": ".",
-    "VERCEL": "1"
+    "PYTHONPATH": "."
   }
 }
