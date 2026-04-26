@@ -1,146 +1,77 @@
-# Secure File Transfer System using ECC
+# Secure File Transfer System
 
-## Overview
+A Django-based secure file storage system using ECC encryption (SECP256R1 + AES-256-GCM).
 
-This is a full-stack Django web application for secure file transfer.
-Users can register, log in, upload text/image files, and securely view/download files.
-All uploaded files are encrypted with ECC-based key exchange and per-file encryption before storage.
+## Requirements
 
-## Features
+- Python 3.12 or higher
 
-- User authentication (register, login, logout)
-- Password hashing and validation via Django auth
-- Profile editing
-- ECC key pair generation per user
-- Encrypted file storage for text and image files
-- Decryption only for authorized owner
-- CSRF protection and authenticated access control
-- Dashboard and file management pages
+## Setup
 
-## Tech Stack
+### 1. Create and activate a virtual environment
 
-- Python + Django
-- SQLite (default for development)
-- tinyec for ECC primitives
-- HTML, CSS, JavaScript-ready templates
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-## Project Structure
+### 2. Install dependencies
 
-- accounts: authentication and profile
-- files: upload, encrypted storage, view/download
-- crypto: ECC keypair and encryption/decryption logic
-- config: Django settings and root URLs
+```bash
+pip install -r requirements.txt
+```
 
-## Setup and Run
+### 3. Run migrations
 
-1. Create and activate virtual environment (already available in this workspace).
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run migrations:
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-4. Create admin user (optional):
-   ```bash
-   python manage.py createsuperuser
-   ```
-5. Create sample test user:
-   ```bash
-   python manage.py create_test_user
-   ```
-6. Start server:
-   ```bash
-   python manage.py runserver
-   ```
+```bash
+python manage.py migrate
+```
 
-## Example Test User Flow
+### 4. Create a superuser (optional, for admin access)
 
-1. Open http://127.0.0.1:8000/accounts/login/
-2. Login with sample user: testuser / Test@12345
-3. Open dashboard
-4. Upload a text or image file from Upload page
-5. Open My Files and use View or Download to decrypt on access
+```bash
+python manage.py createsuperuser
+```
 
-## Security Notes
+### 5. Collect static files
 
-- User sessions and auth are handled by Django middleware.
-- File access is restricted to file owners.
-- Files are encrypted before persistence; plaintext is returned only for authorized requests.
+```bash
+python manage.py collectstatic --noinput
+```
 
-## Run Tests
+## Running the Dev Server
+
+```bash
+python manage.py runserver
+```
+
+The app runs at http://127.0.0.1:8000/.
+
+## Running Tests
 
 ```bash
 python manage.py test
 ```
 
-## Deploy to Vercel
-
-### Prerequisites
-
-1. Install Vercel CLI:
-   ```bash
-   npm install -g vercel
-   ```
-
-2. Login to Vercel:
-   ```bash
-   vercel login
-   ```
-
-### Deployment Steps
-
-1. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Collect static files:**
-   ```bash
-   python manage.py collectstatic --noinput
-   ```
-
-3. **Deploy to Vercel:**
-   ```bash
-   vercel
-   ```
-
-### Environment Variables
-
-Set these in your Vercel project settings (vercel.json or Vercel dashboard):
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SECRET_KEY` | Django secret key for production | (auto-generated) |
-| `DEBUG` | Enable debug mode | `False` |
-| `ALLOWED_HOSTS` | Comma-separated allowed hosts | `.vercel.app` |
-
-### Important Notes
-
-- **Database**: This deployment uses SQLite stored in `/tmp/` which is ephemeral. Data will be lost between serverless invocations.
-- **For production**: Consider migrating to PostgreSQL with a persistent database service like:
-  - Vercel Postgres
-  - Neon
-  - Supabase
-  - AWS RDS
-
-- **Media Files**: Uploaded files are stored in `/tmp/media` and are also ephemeral. For persistent storage, use:
-  - AWS S3
-  - Vercel Blob Storage
-  - Cloudinary
-
-### Local Preview
-
-To test the Vercel deployment locally:
+To run tests for a specific app:
 
 ```bash
-vercel dev
+python manage.py test crypto.tests
+python manage.py test files.tests
 ```
 
-### Troubleshooting
+## Environment Variables
 
-1. **502 Bad Gateway**: Check that `DJANGO_SETTINGS_MODULE` is set correctly
-2. **Static files not loading**: Run `python manage.py collectstatic --noinput` before deploying
-3. **Database errors**: Ensure migrations are run during build
+| Variable | Default | Description |
+|---|---|---|
+| `SECRET_KEY` | insecure dev key | Django secret key. Replace in production. |
+| `DEBUG` | `True` | Set to `False` for production. |
+| `ALLOWED_HOSTS` | `127.0.0.1,localhost` | Comma-separated list of valid hostnames. |
+
+Example:
+
+```bash
+export SECRET_KEY='your-secure-secret-key'
+export DEBUG='False'
+python manage.py runserver
+```

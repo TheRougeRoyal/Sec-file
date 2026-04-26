@@ -7,7 +7,7 @@ This module implements hybrid encryption combining ECC key exchange with AES-256
 - Each file gets a unique ephemeral key pair for forward secrecy
 """
 
-import os
+import base64
 import secrets
 from dataclasses import dataclass
 from typing import Tuple
@@ -15,11 +15,72 @@ from typing import Tuple
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 
 
 # Use SECP256R1 (P-256) curve - widely supported and secure
 CURVE = ec.SECP256R1()
+
+# PBKDF2 parameters for deriving encryption key from passphrase
+_PBKDF2_ITERATIONS = 480_000
+_PBKDF2_SALT = b'secfile_ecc_key_v1'  # Static salt — not security-sensitive (encrypted data itself contains unique salt per Fernet token)
+
+
+def derive_key_from_passphrase(passphrase: str) -> bytes:
+    """
+    Derive a 32-byte key from a passphrase using PBKDF2-HMAC-SHA256.
+
+    Args:
+        passphrase: The passphrase to derive the key from.
+
+    Returns:
+        32-byte key suitable for Fernet encryption.
+    """
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=_PBKDF2_SALT,
+        iterations=_PBKDF2_ITERATIONS,
+        backend=default_backend(),
+    )
+    return kdf.derive(passphrase.encode('utf-8'))
+
+
+def encrypt_private_key_pem(private_key_pem: str, passphrase: str) -> str:
+    """
+    Encrypt an ECC private key PEM string with a passphrase.
+
+    Uses Fernet (AES-128-CBC + HMAC) internally.
+
+    Args:
+        private_key_pem: The PEM-encoded private key string.
+        passphrase: The passphrase to encrypt with.
+
+    Returns:
+        Base64-encoded Fernet token string.
+    """
+    from cryptography.fernet import Fernet
+    key = derive_key_from_passphrase(passphrase)
+    f = Fernet(base64.urlsafe_b64encode(key))
+    return f.encrypt(private_key_pem.encode('utf-8')).decode('utf-8')
+
+
+def decrypt_private_key_pem(encrypted: str, passphrase: str) -> str:
+    """
+    Decrypt an encrypted ECC private key PEM string.
+
+    Args:
+        encrypted: Base64-encoded Fernet token string.
+        passphrase: The passphrase to decrypt with.
+
+    Returns:
+        The decrypted PEM-encoded private key string.
+    """
+    from cryptography.fernet import Fernet
+    key = derive_key_from_passphrase(passphrase)
+    f = Fernet(base64.urlsafe_b64encode(key))
+    return f.decrypt(encrypted.encode('utf-8')).decode('utf-8')
 
 
 @dataclass

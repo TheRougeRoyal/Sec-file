@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
+from django.db import transaction
 from django.shortcuts import redirect, render
 
 from crypto.models import UserKeyPair
@@ -22,14 +23,15 @@ def register_view(request):
 
 	form = RegistrationForm(request.POST or None)
 	if request.method == 'POST' and form.is_valid():
-		user = form.save()
-		UserProfile.objects.get_or_create(user=user)
-		private_key, public_key = generate_key_pair()
-		UserKeyPair.objects.create(
-			user=user,
-			private_key=private_key,
-			public_key=public_key,
-		)
+		with transaction.atomic():
+			user = form.save()
+			UserProfile.objects.get_or_create(user=user)
+			private_key, public_key = generate_key_pair()
+			UserKeyPair.objects.create(
+				user=user,
+				private_key=private_key,
+				public_key=public_key,
+			)
 		login(request, user)
 		messages.success(request, 'Registration successful. ECC keys were generated for your account.')
 		return redirect('files:dashboard')

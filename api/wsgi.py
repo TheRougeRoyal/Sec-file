@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-os.environ.setdefault('VERCEL', '1')  # Enable Vercel-specific settings
 
 # Import Django WSGI application
 from django.core.wsgi import get_wsgi_application

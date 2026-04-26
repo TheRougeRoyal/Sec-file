@@ -183,11 +183,7 @@ def download_file_view(request, file_id):
     2. Decrypt file using ECC private key
     3. Return as download response
     """
-    try:
-        secure_file, plain_bytes = _decrypt_owned_file(request.user, file_id)
-    except Http404:
-        messages.error(request, 'File not found or access denied.')
-        return redirect('files:list')
+    secure_file, plain_bytes = _decrypt_owned_file(request.user, file_id)
 
     # Create response with proper headers for download
     response = HttpResponse(
